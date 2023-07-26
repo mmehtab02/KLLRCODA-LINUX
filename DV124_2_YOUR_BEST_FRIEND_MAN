@@ -1,0 +1,26 @@
+BASICS…..
+
+man man
+q
+
+man ls
+
+
+EXPLORING MAN……
+
+sections 1-9
+
+man -f ls (check sections available for ls)
+
+man intro
+man 1 intro
+man 8 intro
+
+
+ANOTHER HELPING ARGUMENT…..
+
+whatis ls (same as ‘man -f ls’)
+
+man -k ls (search for various commands, returns all as output)
+
+man -w ls (location of file from where page is rendered)
