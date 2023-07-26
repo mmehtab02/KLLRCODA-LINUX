@@ -1,0 +1,25 @@
+
+LESSON 4: CREATE AND DELETE FILES (BASIC FILE OPERATION)
+CREATE FILE
+touch testfile
+ls -l testfile
+touch my{01..100}file
+ls my*file
+touch try1 try2 try01
+ls try*		(any string)
+ls try?      (any single char)
+mkdir testdir
+touch testdir/mytest{01..1000} testdir/file{01..1000}
+
+DELETE FILE
+rm try01
+rm try1 try2
+rm testdir/mytest{01..1000}
+rm -rf testdir
+
+CREATE FILE WITH VIM
+vim mynewfile     (INSIDE VIM EDITOR)
+i        (INSERT MODE)
+Now, hit ESC key to enter the command mode, and type :wq
+ls -l mynewfile
+
