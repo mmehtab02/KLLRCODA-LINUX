@@ -1,0 +1,91 @@
+LESSON 7: COPY AND MOVE FILES (CRUCIAL FUNCTIONALITY FOR EVERY FILE SYSTEM)
+
+COPY FILES
+tree sourcedir (recursively shows content of directory, same with ls -R)
+cp source target
+mkdir targetdir
+cd sourcedir
+cp one ../targetdir
+ls -l ../targetdir/one
+ls -l one
+
+
+cp one ../targetdir/another-one      (copies and changes file name)
+ls -l ../targetdir
+
+
+cp file1tocopy file2copy file3tocopy targetlocation   (multiple files)
+ls -l ../targetdir
+
+
+2 wild cards - ? and *
+my?file (only one char)
+my*file (all chars)
+
+man 7 glob (tells more about wildcards)
+
+ls -l three*
+ls -l three* | wc -l     (10 files with three*)
+
+cp three0? ../targetdir
+ls -l ../targetdir/three*
+ls -l ../targetdir/three* | wc -l
+
+(only 9 files copied)
+
+COPY DIRECTORIES :
+
+cp -R sourcedir anotherdir
+
+
+IF THE DIRECTORY EXISTS, IT WILL COPY THE WHOLE STRUCTURE :
+mkdir testdir
+cp -R sourcedir testdir
+ls -l testdir
+ls -l testdir/*
+
+MOVE FILES
+mkdir movedfiles
+ls -l sourcedir/one
+mv sourcedir/one movedfiles
+ls -l sourcedir/one
+ls -l movedfiles
+
+ls -l anotherdir/one
+mv anotherdir/one movedfiles/another-one
+ls -l anotherdir/one
+ls -l movedfiles
+MOVE MULTIPLE FILES (mv file1 file2 file3 targetlocation)
+mv sourcedir/two01 sourcedir/two02 movedfiles
+ls -l movedfiles
+
+mv anotherdir newdir
+ls -l anotherdir
+ls -l newdir
+
+(anotherdir gone, contents in newly created dir)
+
+
+mv newdir movedfiles
+ls -l newdir
+ls -l movedfiles
+ls -l movedfiles/newdir
+
+(entire directory moved if target directory exists)
+
+MORE POSSIBILITIES
+TO COPY FILE, OR CONTENTS OF FILE, USE REDIRECTIONS :
+
+cat .profile > newfilewithcontent.txt
+
+cat .profile
+cat newfilewithcontent.txt
+
+FILE CONTENT OF SPECIAL FILE COPIED TO NEW FILE
+
+diff - command to compare two files
+
+diff .profile newfilewithcontent.txt    (no output, same content)
+
+
+THERE ARE OTHER METHODS TO COPY FILES, TRANSFORM THE CONTENT DURING PROCESS, ETC. AS WELL.
