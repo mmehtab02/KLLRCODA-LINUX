@@ -1,0 +1,76 @@
+KILLERCODA LESSON 3 : CREATE, DELETE, MOVE THROUGH DIRECTORIES
+
+CREATE DIRECTORIES
+
+mkdir testdir{1..10} (creates 10 directories)
+
+mkdir d1 d2 d3 (another way)
+
+(nested) mkdir -p parentdir/childdir{01..100}
+
+NAVIGATE THROUGH SYSTEM
+
+cd parentdir
+ls
+pwd
+cd ..
+pwd
+cd parentdir/childdir023
+pwd
+cd ../..
+pwd
+
+LITTLE THEORY
+mkdir root
+cd root
+pwd
+/root/root
+cd ..
+cd /root
+pwd
+/root
+
+/home/user2/dir1    →    /var/log/nginx
+
+cd ../../../var/log/nginx     (relative path)
+cd /var/log/nginx         (absolute path)
+
+using slash informs system to use absolute path
+relative path navigates from current position
+
+/root is root user, most powerful entity in linux system. home directory is /root.
+
+other users have home directories under /home\
+
+GO HOME
+
+cd /root
+cd $HOME    (echo $HOME displays value)      cd $HOME/d1/d2
+cd ~
+cd
+
+all of these do the same thing.
+
+DELETE DIRECTORIES
+
+rmdir root
+rmdir testdir{1..10}
+rmdir parentdir (error)
+rmdir -p parentdir (error)
+
+rmdir -p maindir/childdir (success - remove parent directory only when it is empty, so remove subdirectories as well)
+
+rm command
+
+rm parentdir (error)
+
+rmdir parentdir/* (success)
+rmdir parentdir (success)
+
+rm -r parentdir
+rm -rf parentdir
+
+(recursive, force)
+
+rm -rf / (warning danger error)
+
