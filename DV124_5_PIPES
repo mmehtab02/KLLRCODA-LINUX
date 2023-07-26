@@ -1,0 +1,63 @@
+
+
+LESSON 5: PIPES (USE PIPES AND REDIRECTIONS IN LINUX)
+grep
+(command to search for given pattern in output - may be file or output of another command)
+grep 'case' .bashrc
+
+wc (command for counting words, newlines, bytes)
+wc -l .bashrc      (lines)
+
+sort (in alphabetical order)
+sort numbers.txt
+
+uniq (limit occurrences to one, pipe (sort) to one another)
+
+command1 | command2
+command1 | command2 | command3
+The output of command1 is taken as input to command2, and can continue to the next command.
+
+cat numbers.txt
+cat numbers.txt | wc -l
+cat numbers.txt | uniq |wc -l    (9000+?)  (uniq always works best with sort)
+cat numbers.txt | sort | uniq | wc -l        (100)
+
+PRINT FILE, SELECT UNIQUE VALUES, AND COUNT THEM.
+
+REDIRECT FILES :
+
+ls -al > directorylist.txt
+cat directorylist.txt
+
+cat .profile > directorylist.txt        (THIS REWROTE IT, NOT ADDED)
+cat directorylist.txt
+
+>> (SYNTAX INSTEAD)
+
+rm directorylist.txt
+cat .profile > directorylist.txt
+echo 'this line is a separator!' >> directorylist.txt
+ls -al >> directorylist.txt
+Let's check
+cat directorylist.txt
+> will create file if it doesn’t exist and rewrite all data as fresh file.
+>> behaves similarly, but if there’s content in file, will add output.
+
+INPUT REDIRECTION : (OPPOSITE DIRECTION)
+cat numbers.txt
+cat numbers.txt | wc -l      (not perfect way) https://porkmail.org/era/unix/award#cat
+
+wc -l numbers.txt         (better) (remove file name?)
+wc -l numbers.txt | awk '{print $1}'
+awk 'END{print NR}' numbers.txt
+wc -l < numbers.txt          (same output 10000)    (< new symbol)
+wc -l < numbers.txt > count.txt   (take that output to another file)
+cat count.txt        (prints 10000)
+
+sort < numbers.txt | uniq       (unique numbers printed)
+
+< - mostly used to redirect content to file.
+
+while read line; do echo "Content of the line: ${line}"; done < numbers.txt
+What we just did? We created a loop (we will talk about that later) and print every line from the file, as long as there is nothing more in the file numbers.txt.
+
