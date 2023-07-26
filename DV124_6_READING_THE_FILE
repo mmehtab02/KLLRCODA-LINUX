@@ -1,0 +1,56 @@
+LESSON 6: READING THE FILE (DISPLAY CONTENT)
+CAT AND VIM
+
+cat - better to print with text files, not binary generally
+
+file (filename) - check type of file
+
+VIM AND VIEW (VI)
+
+cat just prints the file
+
+vi is a fully functional and very powerful text editor
+
+ESC - :q - (exit VIM)
+:q! - (discard changes)
+:wq - (save changes, write and quit)
+
+ESC switches between modes in VIM - Insert (edit file) mode and Command mode (interact with VIM and do actions, for ex. save and quit). Visual mode - selection of text.
+
+When entering VIM it usually starts with COMMAND mode.
+
+vim testfile
+
+view testfile (view only mode)
+
+LESS AND MORE
+Downside of cat is it prints the whole file in one shot, making it inconvenient to go through large files.
+
+more testfile - user enter and space to move up, press q to quit
+less testfile - better navigation back and forth, use / to search strings
+/Resolution (search string in less mode)          n    N     (search, up, down)
+
+arrow keys, space, enter - navigate
+
+cat testfile | more
+cat testfile | less
+(use cat, more, less together with pipes)
+
+
+TAIL AND HEAD
+head testfile (default first 10 lines printed)
+head -n2 testfile (first 2 lines)
+head -n22 testfile (first 22 lines)
+
+tail testfile prints 10 last lines.
+tail -n2 testfile will print 2 last lines, and
+tail -n22 testfile will show 22 lines.
+BOTH HEAD AND TAIL CAN BE USED WITH PIPES :
+
+cat testfile | tail -n1          (same as : tail -n1 testfile)
+cat testfile | head		   (same as : head testfile)
+
+
+cat testfile | head -n4 | tail -n2
+(prints 5th and 6th lines) (first 4 lines head, 2 lines after tail)
+
