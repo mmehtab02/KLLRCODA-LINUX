@@ -1,0 +1,92 @@
+killercoda : lesson 1 : list files : list files and directories
+ls -- color=no (sh default)
+ls -- color=yes (default)
+ls -- color=auto
+
+clear
+bin/echo -e "\x1b\x5b\x48\x1b\x5b\x32\x4a\c" - alternative to clear
+
+AFTER THE COMMAND COMES ARGUMENTS.
+- ONE DASH INFORMS SYSTEM WE WILL PASS ONE LETTER ARGUMENTS
+-- TWO DASHES MEANS THE ARGUMENT WILL CONTAIN MORE THAN ONE LETTER, COMMONLY AN ENGLISH WORD(S).
+
+ls - l - long listing format (permissions, number of hard links, owner (at current moment), group, size (in bytes), date and time of LAST MODIFICATION of object, file name
+
+UID - user identifier
+GID - group identifier
+
+ls -n (long list with UIDs and GIDs)
+
+ls -l
+
+ls -a
+
+ls -A
+
+ls -al (combinations)
+
+SORTING……………..
+
+ls sorts alphabetically by default.
+
+LINUX 3 DIFFERENT TIMESTAMPS :
+ATIME - LAST TIME FILE WAS ACCESSED
+MTIME - LAST MODIFICATION TIME (CHANGE IN FILE CONTENT)
+CTIME - LAST METADATA MODIFICATION TIME (PERMISSION CHANGE, LOCATION OF FILE, ETC.)
+
+-t - LAST MODIFICATION TIME (orders)
+-tu
+ls -ltu (ORDERED, BY FILE ACCESS TIME)
+ls -ltc (ORDERED, METADATA CHANGE)
+
+touch theNewestFile (create new file)
+ls -ltu (it’s up there)
+ls -ltc (also up there)
+
+echo “hello world!” > file-02 (adds something to file)
+ls -ltu (theNewestFile up there)
+ls -ltc (file-02, then theNewestFile)
+
+chmod 444 file-01 (change permissions of file)
+ls -ltu (theNewestFile up there)
+ls -ltc (file-01, file-02, theNewestFile)
+
+cat (access) another file, now ltu displays that first. lt and ltc don’t show this.
+cat > (edit?) another file, now that file is on top (lt) (modified) and on top of ltc (metadata?). ltu unchanged.
+
+Need to play around with this.
+
+ls -s / ls -ls (allocated space #s)
+
+ls -S (sorted by largest)
+
+ls -h (--human-readable) {K, M, G} {power of 1024}
+ls -l --si (power of 1000)
+
+ls -lSh (long, sorted by size, human readable bytes)
+
+FORMATTING………….
+
+ls -1 (ROW FORMAT) (ls --format=long)
+
+ls --format=commas (ls -m)
+
+ls -Q / ls -1Q
+
+--time-style (format of date in long format)
+ls -l --time-style=locale (default)
+ls -l --time-style=iso (#s)
+ls -l --time-style=full-iso
+
+OTHER…….
+
+ls -al (all, long) --author (username of creator of file)
+ls -ald (prints directories)
+ls -ali (inodes)
+ls -alR (recursively prints all subdirectories)
+ls -alr (reverse order)
+ls -alSr (all, long, size order, reverse {smallest first})
+
+ls --version (of binary)
+ls --help
+
