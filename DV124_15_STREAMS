@@ -1,0 +1,153 @@
+Streams
+The concept of streams is essential in Linux. In fact, we use streams all the time during these lessons, even without knowing it.
+What are streams and how to use them in our work, you will learn in this lesson.
+________________________
+
+
+1. Theory of streams
+Theory of streams
+Let's spend some time and understand what streams are. Look at right side of your screen. There is a command line with prompt waiting for interacting with you. This interaction is executed by two streams - output and input. To be more precise, we talk here about I/O streams. I/O - Input/Output.
+To interact with the system we need to use mouse or, like here, with Linux, the keyboard. These are our inputs. The display on which you read this tutorial is the output. Of course, not only these devices can be input our output. Do you remember pipes and redirections? Exactly.
+Streams
+We have three default streams in the system.
+Hm... wait... Three? Input, output... there is no mistake in the math, only two!
+Well, Linux offers the third stream, now we will learn something about all of them.
+Standard input
+First stream is called standard input. Its file descriptor is 0. In short, we use the name STDIN. File descriptor... It means... Yes, everything in Linux is a file, STDIN as well. So, we have to look first into
+ls -al /dev/fd/
+Here we see here links (this will be the subject of our interest soon) to at least 4 elements:
+0
+1
+2
+proc/<number>/fd/
+These files are located in fd directory, what means file descriptors.
+Let's look closer on the last link. It directs us to the special filesystem (or directory), called proc. We will not discuss it here, it is enough to say that the number represents the PID of the process which executes some action. Do not try to find it after the command ls execution, you will not find it :D
+What are the other links? Numbers 0, 1 and 2 point to /dev/pts/1 . Run this command now:
+tty
+What do you see in output?
+/dev/pts/1, correct?
+It maybe 0 as well, here on Killercoda.
+Please open another terminal (by clicking + next to the tab name on top of the terminal) and execute tty command there.
+Tty is just the terminal through which we communicate with operating system. We see that all streams are connected to it. It makes sense, as this terminal is an output and input in the same time. And pts is pseude terminal slave which emulates (more or less) tty. This emulation is needed, when we use some other program to connect to system, like ssh, screen, etc. Tty is used directly, when our screen/keyboard is directly connected to computer.
+We can define new, or redefine existing streams, using programming languages. Like C, for example. But it is not a part of this tutorial.
+Ok, we can discuss second stream now.
+Standard output
+When STDIN is waiting for instructions passed to it, standard output displays responses from the system (in the simplest scenario). Its file descriptor is 1 and we name it STDOUT.
+Standard error
+The third stream is somehow special. It is standard error, with 2 as file descriptor. We call it STDERR. Why we have special stream for errors? The reason is very simple, in this way we can differentiate the actions taken when output from our scripts are correct or there are some errors.
+Now, when we know what streams are, let's have some fun with them and see how to use them.
+___________________________
+
+
+2. How to use streams
+How to use streams
+Let's try to understand STDERR on example.
+cat noexist.txt
+This will throw an error cat: noexist.txt: No such file or directory. It is how it should be, there is no file like that.
+Ok, what if I don't want to see errors but write them into some log?
+cat notexists.txt 2> errorfile
+This way we directed STDERR to errorfile . We can check it:
+cat errorfile
+What we've done? By using 2> we directed all 2 (what means file descriptor for standard error) to file. Let's runn the previous command again
+cat notexists2.txt 2> errorfile
+Now we should have two entries in log, let's see it
+cat errorfile
+Hm...
+Do you know why we don't see two entries?
+Answer
+Very often we use special redirection for STDERR.
+cat notexists.txt 2> /dev/null
+In this way we redirect error to... nowhere. /dev/null is the special virtual file (yes, everything is a file in Linux!) to which we can write. And only write, we cannot read /dev/null. Well, I mean, you can try cat or whatever, but do not expect anything. It is like void. Or better, a black hole. But unlike blakc hole, which, at least in theory, emits Hawking radiation, /dev/null doesn't emit anything. It is the only one perfect black hole in the universe :)
+However! Yeah ;) We can... overwrite /dev/null. We'll do it in the last page of this lesson, it will be fun!
+We can redirect STDOUT and STDIN as well, in the same way. Let's try something else now. Do you remember, when we discussed that we can join different pipes and redirections? It is time to refresh our memory!
+cat notexists.txt 1> catfile 2> errorfile
+What we've done? We directed STDOUT to catfile which can be our execution log (or whatever you wish) and, if we have error, we write it to errorfile .
+cat catfile - no, nothing here.
+cat errorfile - yes, it is here.
+And now?
+But first, we clean both log files, to be sure.
+rm catfile errorfile
+cat .profile 1> catfile 2> errorfile
+cat catfile
+Here we have the outpu of the cat command.
+What is it? Simple, cat prints the content on screen. Now we know: cat prints the content to STDOUT.
+cat errorfile - empty, as expected.
+We can capture STDOUT and STDERR in the same file.
+cat notexists.txt > capture.txt 2>&1
+cat capture.txt
+cat .profile > capture.txt 2>&1
+cat capture.txt
+2>&1: This uses the &> redirect instruction. This instruction allows you to tell the shell to make one stream got to the same destination as another stream. In this case, we’re saying “redirect stream 2 (STDERR), to the same destination as stream 1 (STDOUT), is being redirected to.”
+__________________________
+
+
+3. Useless use example :)
+Useless use example
+Well, not that useless. This is the example, how we can capture the information what STDIN is used, and act accordingly.
+The script is simple (but we wil not go through details).
+#!/bin/bash
+if [ -t 0 ]; then
+  echo stdin coming from keyboard
+else
+  echo stdin coming from a pipe or a file
+fi
+
+
+Of course, this script is already prepared by system. So, we can run it.
+./script.sh
+./script.sh < dummy.txt
+cat dummy.txt | ./script.sh
+Do you see the difference?
+Answer
+In the script we check the origin of input data. If it is terminal, script says that. If the input comes from file (please, notice two ways of doing it in the examples above) script notifies, that input is from file.
+__________________
+
+3. Even more useless example :)
+Even more useless example
+I promised you something :)
+We try to force our black hole to emit something.
+echo 'whatever' > /dev/null
+cat /dev/null
+Hm, no. It doesn't work.
+Ok, let's try differently
+echo 'whatever' > tmpfile && mv tmpfile /dev/null
+cat /dev/null
+WOW! Our black hole emits whatever radiation!
+But.. is it?
+No, it is not.
+If we run
+file /dev/null
+We will see /dev/null: ASCII text It means, we have simple text file, not special one!
+Let's see different view
+ls -al /dev/null
+The output will be -rw-r--r-- 1 root root 9 May 11 21:07 /dev/null
+It is definitely not what we wanted to see.
+This thing might happen. IT SHOULDN'T but it might. So, how to recover the proper /dev/null?
+First, we need to remove faulty file
+rm /dev/null
+Don't worry, nothing bad happen. It already happened :)
+And now we have to run
+mknod -m 0666 /dev/null c 1 3
+mknod creates a speacial file
+-m 0666 says about file permission
+/dev/null is the name
+c is the device type
+1 3 are the MAJOR and MINOR numbers to specify the device
+I want to focus your attention on device type. We used c. When we run
+ls -al /dev/null
+We will see
+crw-rw-rw- 1 root root 1, 3 May 2 10:20 /dev/null
+Did you noticed c on the beginning?
+When you run info mknod you'll see the explanation. Let me copy it here.
+p for a FIFO
+b for a block special file
+c for a character special file
+So, we have three main types of devices. C is one of them and it means character special file which... let say.. operates only in "one way". Another examples of this type in dev/random which generates random characters and cannot receive any data.
+Block and fifo are not in our scope.
+Last thing is MAJOR and MINOR numbers. These numbers are not random. The specific pairs are defined in Kernel. For example, mentioned random has MAJOR and MINOR number set to 1 and 8.
+Ok, let's finally see our special file
+file /dev/null
+The response should be /dev/null: character special (1/3)
+We are done!
+Another way of creating /dev/nul is to run udevadm trigger --sysname-match=null . But this might not work on all systems.
+
