@@ -1,0 +1,192 @@
+Elevate privileges and login as another user
+In this lab we will learn how to easily login as another user or even become root.
+_________________________________
+
+1. Use su
+Become another user or elevate privileges
+Normal user
+When we log in to Linux we are "normal" user. With limited access to programs, directories, etc.
+In this lab we will use two newly created users: student1 and student2. Both have password set and these are 1student for student1 and 2student for student2.
+Elevated privileges
+Sometimes we say that Linux has two types of users. Normal, and root. But the truth is that we have something in between - user with elevated privileges (or possibility to use elevated privileges) - sudo. This possibility can be very specifically configured and allows to use only specific subset of commands with root privileges.
+Therefore I say this should be treated as "something in between" root and normal user. It is an user, who has a possibility to run selected set of commands as root.
+root
+Root is a master of the system. Root can do everything. Simply, it is an admin :)
+Change user
+Let's check who we are:
+whoami
+id
+We are logged as root (Killercoda functionality). In order to use another user we need to use command su. As usual it is a abbreviation from the word substitite. It allows us to use another user in order to run commands.
+su has multiple options. You can learn them with
+su -h
+For us, however, important is only one argument: -l or simply -. Let's use it to switch to student1.
+su - student1
+As we can see, when we use su as root, we don't need to provide the user's password. The power of being admin :)
+Let's check, if we are student1:
+whoami
+id
+Now, let's login as student2.
+su - student2
+Right, now we need to provide the password. This is the password for user2: 2student . Type it in the command line, in the terminal, please.
+Let's see:
+whoami
+id
+Ok, let's go back to the initial user - root.
+exit
+(quit from student2 to student1)
+exit
+(quit from student1 to root)
+When su is executed without user: su - root is assumed and you need to give root password. And yes, you are right, it will not work in this setup. Why? Let's find out.
+But first, we need to login again as normal user (it doesn't make sense to change user from root to root, don't you think?)
+su - student1
+su -
+CTRL+c will quite the password prompt (or you can try 3 times to login).
+exit
+grep ^root /etc/passwd
+grep ^root /etc/shadow
+The reason is simple. There is no password set for root.
+It makes perfect sense. Let me tell you a little bit why. Having password for the most powerful user in the system is a security concern. Imagine weak password for root with another problem (this is one of the common misconfigurations) - allow access to root account from outside the system. It is a huge hole, a highway into your system for attackers. Therefore we never should allow access to root from outside the system and we should keep the root user paswordless, accessed only with elevated privileges by allowed users. Paswordless doesn't mean vulnerable, it means simply, that... no one can crack not existing password :)
+___________________________________________________
+
+2. sudo explained
+Elevate privileges
+When su log us as root, sudo elevates our privileges on behalf of root (let say it this way).
+Elevate privileges for users
+We are logged as root, so sudo at this moment has no sense, totally. But in order to see what happens when sudo is executed, let's see it now.
+Before we start, let's observe, how our processes list looks like.
+ps
+$ ps
+    PID TTY          TIME CMD
+    899 pts/0    00:00:00 bash
+   1099 pts/0    00:00:00 ps
+
+
+You should see something like the list above.
+We have two processes: bash which is our "main" session and ps - the process which we just executed.
+We can use sudo in two ways:
+If we want to run some commands as root, we can use sudo <command>. Like in the example.
+sudo ps
+The output will be similar to this one:
+$ sudo ps
+    PID TTY          TIME CMD
+    899 pts/0    00:00:00 bash
+   1243 pts/0    00:00:00 sudo
+   1244 pts/0    00:00:00 ps
+
+
+This time we have three processes. Two - bash and ps we already understand. The third is sudo itself.
+Why is that? bash is the parent session. In this context we executed ps, but with sudo. Therefore sudo created its own session, where the ps were finally run.
+Second method is to interactively use sudo mode and use elevated privileges in the full session (not command by command).
+sudo -i
+ps
+-i argument means that we want to use sudo with login option, another words, to switch the session to privileged one.
+The output should be like below:
+$ sudo -i
+$ ps
+    PID TTY          TIME CMD
+    899 pts/0    00:00:00 bash
+   1299 pts/0    00:00:00 sudo
+   1300 pts/0    00:00:00 bash
+   1308 pts/0    00:00:00 ps
+
+
+Now we have four sessions. What happened here? The "main" session has PID 899. This session executed session with PID 1299 (when we typed sudo -i). in order to login to session, Linux started another session of bash (PID 1300) in which we executed our ps (PID 1308). Simple :)
+Let's come back to the main session. exit
+Ok, our understanding of options and usecases is better now, let's configure sudo for our two users in next chapter.
+___________________________________________________________
+
+3. Configure the sudoers file
+configuration of /etc/sudoers file
+Sudo can be configured. In order to do so, we use /etc/sudoers file. Let's see it.
+clear
+cat /etc/sudoers
+We are interested in two lines there. At least, for now.
+root ALL=(ALL:ALL) ALL
+This is the configuration line for the user
+%sudo ALL=(ALL) NOPASSWD:ALL
+And this one for the group. The character which indicates group is %.
+Probably you noticed, that we have two entries for group sudo. The last one is used.
+Check if sudo is configured for users
+Let's check student1 is sudo is configured for him.
+su - student1
+sudo ps
+Provide password (1student )
+No, we cannot use sudo.
+exit
+Let's configure it, then!
+Edit sudoers file
+We can do it simply, by using your editor of choice, like vim:
+vim /etc/sudoers.
+However, Linux givees us special tool which allows us to safely edit sudoers file. It is visudo.
+But first, let's configure visudo to use vim.
+update-alternatives --config editor
+And select vim.basic (which should be listed with number 3 on the list).
+Ok, we ready.
+visudo
+So, visudo knows which file to edit and which editor to use.
+Ok, let's quit for now: :q!
+Config line explained
+Each config line looks like this:
+user pos1=(pos2:pos3) pos4
+or
+%group pos1=(pos2:pos3) pos4
+On the beginning we have user or group. To differentiate these two, we use % for specify the group.
+pos1 - applies to all hosts
+pos2 - user can use all commands as all users (i.e. root can ls as user03, etc)
+pos3 - user can use commads as all groups
+pos4 - user can use all commads
+Let's add some configuration for student1.
+Please open
+visudo
+and go to the end of the file and add the line (press i to change vim mode to INSERT, if needed):
+student1 ALL=(ALL:ALL) ALL
+Quit visudo by pressing ESC key followed by :wq
+Login to `student1 again.
+su - student1
+sudo ps
+provide password (which is 1student)
+exit
+Now it works, but with password.
+please remember, when you use su you have to provide the password of the user you want to use. With sudo you have to provide the password of current user.
+sudo without password
+Ok, let's edit sudoers again with
+visudo
+and add this line:
+student2 ALL=(ALL:ALL) NOPASSWD:ALL
+It is easily noticeable, that we configured our second user with one difference - NOPASSWD. in this way we informed sudo, that this user doesn't need to confirm himself with password. Let's see it.
+su - student2
+sudo ps
+exit
+______________________________
+
+4. Configure the sudoers.d directory
+The sudoers.d directory for better granulation
+On previous page we configured the /etc/sudoers file. This file contains one setting, which we will use now.
+#includedir /etc/sudoers.d
+First, here we have not a comment (normally, in bash, # means comment), but an instruction #include. Here it means that in order to evaluate sudo config, files in /etc/sudoers.d directory will be used.
+Let's take a look what we have there:
+ls -al /etc/sudoers.d
+Please, read the README file there.
+cat /etc/sudoers.d/README
+In my practice, I used to create files in this directory with filename which represents the user or group. So, let's use the configs we have previously, but first we will remove the both users which we added earlier. We do it with sed and remove the lines with student from the /etc/sudoers file.
+sed -i '/student/d' /etc/sudoers
+(we will talk about sed later)
+echo "student2 ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/student2
+echo "student3 ALL=(ALL:ALL) ALL" > /etc/sudoers.d/student3
+Do we have proper configuration?
+ls -al /etc/sudoers.d
+Yes, we have.
+Let's check student3 user
+su - student3
+sudo ps
+the password is 3student
+exit
+And student2
+su - student2
+sudo ps
+exit
+_______________________________________
+
+Congratulations
+You are able to work with su and sudo and you are able to create basic (but most common) configuration.
+
