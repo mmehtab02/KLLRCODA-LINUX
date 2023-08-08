@@ -1,0 +1,141 @@
+Lesson 14: Work with logs
+Work with logs
+Logs are essential to understand what our system is doing. By default, all logs are stored in /var/log directory (or filesystem), however, every system has different approach to files structure. In this lesson we will look on the way how Ubuntu works with logs.
+As said, default log location is /var/log. However we can configure system to store logs somewhere else. It might be done for application logs, etc.
+We will consider two approaches. The old one, where records are stored in plain text files, and new one, which comes with systemd. What is systemd, we will discuss in future lessons.
+We will go through system logs as well, as application logs. For this purpose, the system installed Nginx web server in the background. And, as you can expect, we will learn what is Nginx and how to install packages... in future lessons :)
+__________________________
+1. Standard view on logs
+Standard view on logs
+Before systemd, we used to work with plain text logs only. Well, it is some generalisation, but in fact, all system logs of Linux were stored as plain text. Some of them still are.
+Let's navigate to default log directory and take a look.
+cd /var/log
+ls -al
+As mentioned, /var/log is the default location in all Linux systems for logs. Let's discuss some theory here. The best practice is to have /var/log as separate filesystem, not just directory. What it means? Filesystem is a layer, or structured collection of data in partition on disk drive. Partitions separate these layers. And this is what is enough for now :)
+I used this time, to keep you busy reading, while system is preparing the needed log structure :)
+So, we listed the directory. We see different files, so let me explain what is what.
+Log name
+Purpose
+syslog
+The main system log. Contains all important information about the system and applications. Generally, if something is not writting its own logs, it will be here, in syslog.
+auth.log
+Contains information about authorizations. All user login attempts (with information if successful or not), logout, password changes, remote logins and use of sudo.
+dmesg
+is a kernel ring buffer, not the log (as we understand the logs). It allows us to interact with kernel and get information by querying bootup messages. It doesn't mean, that dmesg contains the booting data, but everything what is going on during the system's work.
+kern.log
+Stores Kernel messages
+boot.log
+Contains system' starting sequence (not kernel boot). Another words, information about started services, applications, disks configurations and so on.
+lastlog
+file to be used with lastlog utility. Contains information abount last logins
+faillog
+similar to lastlog, use this file with faillog utility. Logs fails, like login failures
+wtmp.log
+Contains login infomration. However, it doesn't show information similar to lastlog, but used by other utilities, like who.
+dpkg.log
+Contains data about packages management - install, remove, update, etc.
+
+These are system logs. Another type of logs are applications logs. Generally, these logs are stored in their directories inside /var/log, like Nginx logs, for example. Let's see it.
+ls -al /var/log/nginx
+Here we have nginx directory with its logs.
+Watch the logs
+How to check what is inside the logs? Except binary logs (like lastlog), all logs are text files. Therefore, it is very easy to read them.
+cat /var/log/dpkg.log
+tail /var/log/syslog
+We have two examples above. All text operations, like cat, less, more, head, tail, grep, etc, work here!
+Let's take a look for our Nginx logs.
+cat /var/log/nginx/access.log
+We can do some requests, using the web browser. Simply click the link
+Open web browser
+And repeat cat /var/log/nginx/access.log
+Hmm... Yes, we see more logs, but it is... unhandy to check, if we want to observe continuously what is logged in the file.
+Luckily, tail has very nice argument. With -f we are able to keep the stream open and see all new messages on the screen. If we want to quit, press CTRL c.
+tail -f /var/log/nginx/access.log
+Pushing messages to log
+We are able to "inject" messages to the log files. one of the possibility is to use logger command. This example will simply add the line to the syslog file.
+tail /var/log/syslog
+logger "This is a test message"
+tail /var/log/syslog
+___________________________________
+
+2. Journactl - yet another approach to logs
+Journactl - yet another approach to logs
+With Systemd Linux delivered a new way of storing logs, journald service. Logs are not stored as text anymore, therefore we need a new utility in order to read these files. We can do it with journalctl utility.
+Many SysOps are not happy with this solution. They claim that text based logs are better, faster for search, more "operatable" in terms of managing the files (backup, rotation, etc).
+Data stored by journalctl is binary. So, this time we do not have that simple option to scroll through the records.
+However, journalctl is very powerful tool and the possibilities of creating queries are nearly infinite.
+Before we start, we should understand different levels of messages. System and applications write messages to logs and are able to determine (well, it is programmed by developers, obviously) what severity (or another words - importance) of the message should be set. In syslog we have 7 defined levels of messages, which determine their severity:
+syslog message levels
+0: emerg
+1: alert
+2: crit
+3: err
+4: warning
+5: notice
+6: info
+7: debug
+A few explanations (more can be found in the Internet).
+emerg (emergency) is the highest level and shouldn't be used by applications. It means that system is unusable.
+debug is very often used during the development. Please remember that keeping logs where all messages in this level are stored may need special care about free space on your storage.
+In fact, the same may happen with levels 6 and 5. Messages on levels 5 to 7 are treated as informative only.
+Ok, theory part done, time for hands-on. We already know how to work with log files which are stored as text. Let's learn how to work with binary files from systemd.
+journalctl
+This command shows all systemd logs. We can navigate through them using arrows up and down, and quit with
+q .
+Where systemd stores its files?
+Let's go to the
+cd /var/log
+directory and list all files
+ls -al
+We should see the journal directory. Let's go inside
+cd journal
+and list files again
+ls -al .
+There may be the file system.journal, but this is not common approach. Despite this file (potentially), we can see one directory with strange name.
+With time we will see more and more of these directories. What are they? These directories contain logs stored for each boot. Another words, each restart will force system to create new directory for logs.
+But sometimes these directories don't exists. In order to check, and be sure that this option is enabled, check the config file:
+cat /etc/systemd/journald.conf
+This setting must be set:
+[Journal]
+Storage=persistent
+
+
+So, we said, directories represents boots. But how we can use it?
+journalctl --list-boots
+gives us ordered list of boots. Output should be similar to this one:
+0 6a8e47d21a894cc3944bb1982d13d13f Tue 2022-01-18 22:33:13 UTC—Tue 2022-01-18 22:49:50 UTC
+What it means?
+First column is the offset for boots. Another words, 0 is current boot, lower numbers represents older boots. Next is the absolute reference of the boot ID. And dates of start and end of the log.
+What we can do with it? Well, simple, we can display logs for specific boot! This is very, I mean it, very useful function.
+journalctl -b -10 will display "boot", or data collected during the run of the system done 10 reboots (stop/starts) ago.
+journalctl -b 0 will display the current boot.
+We can use -b and boot id. From example above it will be journalctl -b 6a8e47d21a894cc3944bb1982d13d13f.
+________________________________
+
+3. Journactl, continuation
+Journactl, continuation
+Here we will explore some possibilities given by journalctl. More is in manual. These examples will give you the picture of the functionality.
+journalctl --since "$(date '+%Y-%m-%d %H:%M:%S' --date='5 minutes ago')" log entries from specific time
+But wait, what happened here? Let's take a look:
+journalctl - command for work with journal
+--since - argument for limit logs from specific date
+"$()" part this everything what is inside brackets will be executed and output put as value to --since argument
+Ok, so, now date. The command itself shows current date.
+'+%Y-%m-%d %H:%M:%S' formats the output. We need to pass date in this format to journalctl
+--date='5 minutes ago' will take the time from 5 minutes earlier.
+journalctl --since "$(date '+%Y-%m-%d %H:%M:%S' --date='5 minutes ago')" --until "$(date '+%Y-%m-%d %H:%M:%S' --date='2 minutes ago')" logs from specific range
+journalctl --since yesterday - logs from today and yesterday. Here --until works as well.
+journalctl -u nginx.service - lists only nginx service. In this way we can list all records related to nginx (in this case).
+journalctl -u nginx.service --since today - lists nginx related entries from today
+journalctl _PID=8088 - lists entries for PID (Process IDentifier) 8088. Let's try for one of the Nginx processes:
+journalctl _PID=$(pgrep nginx| tail -n1) I trust you already know what happened here?
+id -u www-data - collect id of user www-data. Let's suppose it is 33, which is the standard UID (User IDentifier) for this user.
+journalctl _UID=33 --since today will print records for specified UID. If this UID doesn't match, we can always... use command inside command:
+journalctl _UID=$(id -u www-data)
+journalctl -F _GID
+This is interesting. It lists all GIDs (Group IDentifiers) with entries in journal. The same approach works for UIDs - _UID
+journalctl -k - displays kernel messages
+journalctl -p err -b - display errors, criticals, alerts and emergencies.
+journalctl -b -u nginx -o json-pretty - parsing and better formatting
+man systemd.journal-fields - read more in man :)
+
