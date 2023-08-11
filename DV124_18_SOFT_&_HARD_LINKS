@@ -1,0 +1,210 @@
+Soft and hard links
+In the previous lesson we mentioned links. It is time then, to explain them.
+Links are very powerful tool in Linux system and we can use them for many purposes. Probbly you are not aware of this, but your system is full of links, even now.
+We have two types of links. Hard and soft. It is imperative that you understand the difference between them.
+________________________
+
+
+1. Theory
+Theory
+We start with soft links. These links are easily visible in the system and we use soft links in wide applications in our work. Start with simply linking the objects between places, system uses soft links to configure specific versions of tools, to the system-related services configurations. For example, in *old) Init V soft links vere used to define what service should be started in which runlevel.
+We will not go that deep. But we will learn how to use soft links.
+Let's start with some preparations. We will create two directories and files, which we will use to create links.
+mkdir source target
+touch source/file1
+touch source/file2
+echo 'hello!'> source/file1
+echo 'hello!'> source/file2
+cd target
+Ok, we are ready, we have files and directories and we are in target directory.
+What are links
+First, what are links. Simply speaking, we can treat them as shortcuts to original destination/file. It is very handy way to use libraries, executables, configurations in multiple places without multiplicating the files, which might make our work very complicated. But it is not just the shortcut. It is also something what we call pseudo-file. The difference is simple. Imagine, you created a shortcut to file or directory in Windows system (so, I should say 'folder', shouldn't I?:) ). When you open this shortcut, in fact you open the original location. In linux, when you open the link, the system sees it as object opened from the location where it resides, not the original (or source) location. The effect will be similar on the end, but this is the important difference to understand.
+Syntax
+The command to create both types links is simple - ln. And yeah, it is an abbreviation again :)
+ln SOURCE TARGET
+Here we have the syntax of the link command. Afterln command we have to provide the source (original) object and then the target. Target will be the actual link.
+The difference between soft and hard links is in the argument we use in ln command.
+In this way we see above, we create hard link. In order to create soft link, we have to add -s argument.
+ln -s SOURCE TARGET
+Ok, now we know what are links and how to create them, in next chapters we will create soft and hard links and we will look closer what are thee differencces between them.
+_____________________
+
+
+2. Soft links
+Soft links
+We start with soft links. In source directory we have two files with the same content. Let's check one of them, which we will use in this chapter.
+cat ../source/file1
+It is simple, but we don't need anything more.
+Ok, we are ready to create the soft link.
+ln -s ../source/file1 softlink
+What we have now?
+ls -al
+And we see lrwxrwxrwx 1 root root 15 May 15 11:20 softlink -> ../source/file1
+Right! We see that this output looks a little bit differently than for regular files, correct? We have two information here.
+l on the beginning of permissions matrix, which informs us clearly that it is the link.
+origin location, or redirection. However we weill call it, the fact is that this shows us the name of the link and where is the origin.
+Now interesting thing.
+Please, createw second soft link, this time with absolute path.
+ln -s /root/source/file1 softlink2
+ls -al
+What we see now?
+ls shows us exact object, exact path used to create the link. These two links direct us to the same file, however the paths look different.
+We can read the softlink now.
+cat softlink
+And do some modifications
+echo 'change to origin' >> /root/source/file1
+echo 'change to softlink' >> softlink
+echo 'change to softlink2' >> softlink2
+Ok, shall we check the file?
+cat softlink2
+Yes, all changes are in the file.
+Inodes
+Although thee concept of inodes isn't familiar to us yet, but for now it is not needed. Let's see output of these two commands
+ls -il ../source/file1
+ls -il
+The first number in each line is different. This number is an inode. Simply speaking, it is the ID of the object. By definition, an inode is an index node. It serves as a unique identifier for a specific piece of metadata on a given filesystem, and the disk block location of this object. Enough :)
+The different numbers means the these objects are different. They are not the same. Another words, the information about the origin file and our soft link is stored somewhere else on the filesystem.
+Get some info
+Let's use the commands we learned last time.
+file softlink
+This returned
+softlink: symbolic link to ../source/file1. Nice.
+stat softlink
+And we see
+ File: softlink -> ../source/file1
+  Size: 15              Blocks: 0          IO Block: 4096   symbolic link
+Device: fc01h/64513d    Inode: 775746      Links: 1
+Access: (0777/lrwxrwxrwx)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2022-05-15 11:20:49.221533962 +0000
+Modify: 2022-05-15 11:20:49.081531934 +0000
+Change: 2022-05-15 11:20:49.081531934 +0000
+ Birth: -
+
+
+But when we do
+stat ../source/file1
+Links is still 1. Why? Simple. This is the count of hard links.
+Remove links
+In order to delete the link, we can use the command unlink. The syntax is simple
+unlink LINK
+So...
+unlink softlink2
+ls -al
+Yes, we removed the link. What will happen if we remove the orginal file?
+Let's try.
+rm ../source/file1
+And now we check the link
+ls -al
+As we can see, the way of display the information changed.
+file softlink
+Returned
+softlink: broken symbolic link to ../source/file1, what means the link leads to not existing object.
+What is interesting, stat doesn't show any problem
+stat softlink
+cat softlink
+We see
+cat: softlink: No such file or directory
+Ok, now we try to recreate the original file
+touch ../source/file1 && echo 'hello!'> ../source/file1
+What happened with our link?
+ls -al
+cat softlink
+Everything is back to the state before we removed the source file (except content of the file). Why it is possible? As we learned above, the soft link is somehow an independent entity. This link is soft, what means in this case that link is a pointer to the source.
+Finally, we can remove soft link using rm command.
+rm softlink
+ls -al
+Confirmed, the link is removed.
+____________________________
+
+
+3. Hard links
+Hard links
+Now we do similar actions but with hard links. We have another file in source directory. Whe this command will be executed
+ln ../source/file2 hardlink
+Let's check
+ls -al
+Well... This time it looks completely different!
+ls -il ../source/file2
+ls -il
+Both files have the same inode. Let's confirm a few things now.
+file hardlink
+Will return
+hardlink: ASCII text
+stat hardlink
+Shows
+ File: hardlink
+  Size: 7               Blocks: 8          IO Block: 4096   regular file
+Device: fc01h/64513d    Inode: 775734      Links: 2
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2022-05-15 16:51:49.016027786 +0000
+Modify: 2022-05-15 16:28:10.878600571 +0000
+Change: 2022-05-15 16:28:21.242839463 +0000
+ Birth: -
+
+
+Did you noticed 2 as number of links? Last thing, we can check the original file.
+stat ../source/file2
+ File: ../source/file2
+  Size: 7               Blocks: 8          IO Block: 4096   regular file
+Device: fc01h/64513d    Inode: 775734      Links: 2
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2022-05-15 16:51:49.016027786 +0000
+Modify: 2022-05-15 16:28:10.878600571 +0000
+Change: 2022-05-15 16:28:21.242839463 +0000
+ Birth: -
+
+
+Change content
+now we add something to both.
+echo 'this is added to original file' >> ../source/file2
+echo 'this is added to hard link' >> hardlink
+cat hardlink
+cat ../source/file2
+It works pretty the same like for soft links.
+Delete original
+Do you remember what happened when we deleted source of soft link? Let's do it for our hardlink now.
+rm ../source/file2
+And what we have?
+ls -al
+file hardlink
+stat hardlink
+cat hardlink
+Well, works like nothing was deleted.
+Ok, we should bring back original file.
+touch ../source/file2 && echo 'hello!'> ../source/file2
+Ok, now the check.
+ls -il ../source/file2
+ls -il hardlink
+Hm... different inodes... Do you know what we will find in files?
+Answer
+
+
+cat ../source/file2
+cat hardlink
+stat ../source/file2
+stat hardlink
+Theory again
+Ok, here is what happened. Let's think about inode as an element of communication between filesystem and physical storage. Take a look on the picture below. This is how soft link looks
+
+We see that link on the file level is related to the original file. Both files have their own inodes and we can say (it is simplification) that inode of link is a shortcut to inode of original file. Only one inode points to the object on storage - original one.
+When we remove the original file:
+
+Neither link itself or inode has understanding how to get to the storage. The file is 'lost'.
+Ok, how it looks for hard links?
+
+Both files - original and link, point to the same inode. And this inode points to the object on storage. Now, when we remove the original file...
+
+We remove just the file. Inode stays s long as anything is related to it.
+______________
+Congratulations
+You are able to create links and you know the differences between oft and hard links!
+On the end, a little more information about hard links.
+You can't create a hard link to a directory. It only applies to files.
+If an original file is deleted, the hard link still exists.
+A hard link remains intact when an original file is moved or renamed.
+A file exists until the last hard link is deleted.
+It is not possible to create a hard link between two file systems.
+The content change is reflected in all linked files.
+
+
+
