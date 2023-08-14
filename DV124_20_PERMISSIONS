@@ -1,0 +1,486 @@
+Permissions, the allow/deny matrix
+The title is a little provocative. But in fact, the permissions which we will discuss in this lesson are kind of access matrix. We saw it before in a few lessons. Now it is time to look at them closely.
+—------------------------------
+1. Theory
+Theory
+In this page we will go through the theory of the permissions.
+Recap
+We discussed previously a few elements of permissions. To remind them, we'll go through them.
+d on the first place of the matrix means directory
+l in the same place means soft (symbolic) link
+- means file
+And that is all what we learned :)
+Permissions elements
+To make things a little bit complicated, not only the permission matrix is important. The full picture is composed from this matrix and information about owner (and the owning group) of this file. Why? It become clear very soon.
+Matrix explained
+Let's take a look on the matrix itself. When we run
+ls -al
+We see the long format of the command ls. On the beginning of each line we see something similar to the picture below. Let's take a look.
+
+I splitted this string of mysterious characters into four elements.
+On the beginning we have information about object's type. We know three already, but the list below contains more. And... Surprise! In fact, we know more types!
+- - normal, regular file
+d - directory
+l - soft (symbolic) link
+b - block special file (like hard drive)
+c - character special file (like /dev/null)
+n - network file
+p - FIFO
+s - socket
+We never touch the last three. And we will not do it here.
+But we can check first five. Observe the first letter in the matrix.
+ls -al .bashrc
+ls -ld /root
+ls -l /usr/bin/python
+ls -l /dev/vda
+ls -l /dev/random
+Uh, we just described the first letter. 9 to go.
+Don't worry, now it will go faster :)
+Please, return to the picture above. We explained the first block and we have three more. As picture explains, these three blocks are related to specific user or users.
+Owner. This is the user who owns the file. Not necessairly the author, but current owner.
+Group. Every file in Linux can have the distinct permissions for one, selected group. By default, this group is set to the owner's group, but it can be changed. For example, the config file of the application can have a owner (a user who uploaded it), but the application is not run by this user but special user (with special group). So, we can allow this group to have distinct access to this file.
+Others. All other users in the system.
+—-----------------------------
+2. Theory, cont.
+Theory, continuation
+Ok, we know what each block represents, it is time to talk about the meaning of each letter.
+Please, take a look at your home directory now.
+ls -al
+We can see many objects and different matrixes.
+Each group (owner, group and others) is build with three parts. By setting these elements we say:
+r - means Read permission is granted
+w - means Write permission is granted
+x - means eXecute permission is granted
+So, in this example:
+drwx------ 2 root root 4096 May 2 10:20 .ssh
+we see, that it is a directory (d) with full access for owner (rwx) and no access for the group and others (---).
+Two methods of setting permissions
+Absolute mode
+Absolute, or numeric mode uses digits to set exat tpermissions in each block. Each block is represented by one digit. Each digit has specific meaning. Here is the table with relations between digits and permissions.
+Digit
+Meaning
+0
+no access
+1
+eXecute
+2
+Write
+3
+Write + eXecute
+4
+Read
+5
+Read + eXecute
+6
+Read + Write
+7
+Read + Write + eXecute
+
+So, to represent the permission from example a few lines above, we can say 700.
+I used capital letters on purpose. I want to build the connections in your minds between the digit, permission and its meaning.
+Important! eXecute doesn't simply mean execute the file or program, etc. It also means execute the directory, what allows us to enter into the directory.
+Symbolic mode
+This mode allows us to work in more easier, more visual way. Here we use operator and the user denotation to define the permission matrix.
+Operator
+Meaning
+=
+Set the whole block and override the previous permissions
+-
+Remove the permission for specific user
++
+Add the permission for specific user
+
+Now you will understand, why I used deliberately the capital letters before.
+User denotation
+Meaning
+u
+Owner
+g
+Group
+o
+Other
+a
+all (owner, group and others)
+
+So, if I wrote a bash script and I want to make it executable for me, I use u+x. If I want to do it for everyone - a+x. And if I decide later to remove this permission for others - o-x.
+And finally, I decided now to give exactly read and execute permissions to a file, no matter what was set earlier. I want it for others, so I can use explicit definition - o=rx.
+—-------------------------------------------
+3. Theory, cont.
+Theory, continuation
+Right. We've done a lot. Something still to do.
+Let's list something again.
+ls -l /var/log
+Please, try to answer, how the system knows who is this owner? Or the group?
+The answer is here:
+-rw-r--r-- 1 root adm 48194 May 2 10:20 dmesg
+Let's look on the picture.
+
+We can see root root (or root adm from the log above). The firs string describes the owner, second the group. Simple like that :)
+That's concludes the theory part :) After the short quiz we will finally do some hands-on!
+—------------------------------
+
+4. Quiz
+Quiz
+Try to find the proper answer to the questions about permissions!
+Q1: I want to add write permission for the group
+o+w
+g+w-rx
+g-rx
+g+w
+Answer
+Option 4
+
+Q2: 752 represents
+rwxr-x-w-
+rwx-wx-w-
+rwx-rw-w-
+rwx-rwr--
+Answer
+Option 1
+
+Q3: I want to force rwx permissions for owner, rw for group and r only for others
+u=rwx,g+rw,o+r
+g=rw,o=r
+u=rwx,g=rw,o=r
+g-x,o-wx
+Answer
+Option 3
+
+Q4: u=rwx,g=r,o=r in digits will be
+744
+644
+622
+711
+Answer
+Option 1
+
+Q5: I have the script in my home directory. I want to ensure, that the group is able to read an execute (not write) and others can execute the script. What should I set?
+3 for group and 1 for others
+5 for group and 1 for others
+3 for group and 2 for others
+7 for group and 5 for others
+Answer
+Option 2
+
+
+BACK
+NEXT
+Editor
+Tab 1
++
+55 min
+—------------------------------
+
+5. Change permissions for files
+Time to play
+Ok, we know theory now. It is time to finally get our hands dirty and do some work with permissions!
+First, we need to switch the user
+su - student3
+ls -l
+We see, that student3 is in fact directory (d on the beginning), and has 755 privileges, what means all access for owner and read and execute for group and others.
+Let's go into this directory.
+cd student3 && ls -l
+We see student3 file (-) with 644 permissions. Please, figure out for your own, what it means.
+Play with the file
+We start our work with the file. Can we write to it?
+echo 'second line' >> student3
+Yes, we can, at least, we didn't see any error. Let's confirm it.
+cat student3
+Yep. We also confirmed that we are able to read the file.
+The command to change permissions is chmod. Obviously, an abbreviation :). Syntax is very simple:
+chmod permissions objects
+Ok, it is time to change the permissions of our file!
+chmod 755 student3 && ls -l student3
+Permissions were changed. We can easily see, that the execute permission was added (and file name is colored differently). Now, we will change permissions to something else
+chmod 640 student3 && ls -l
+Ok. now, the task is, I wrote a script, and want to ensure that all users are able to run it. I can use 755 like before. But in this case, I will not only add the execute flag, but I will change the all permission matrix. Let's do it again with digits.
+chmod 755 student3 && ls -l student3
+Let's compare the before and after matrix:
+-rw-r-----
+-rwxr-xr-x
+
+
+As you can see, we not only added the permissions. We changed them from 640 to 755 That is why this method is called absolute.
+To see how the symbolic method work, we will restore previous permissions first.
+chmod 640 student3 && ls -l student3
+And now we will add the execute flag.
+chmod o+x student3 && ls -l student3
+Confirmed, we added the execute flag to others' permissions. Let's add this permission to the group and others too (just to make sure it is there :) )
+chmod g+x,o+x student3 && ls -l student3
+Ok, we have it. Now, if we want to add execute flag to all three groups, we need to do o+x,g+x,o+x, right? Well, yes. But it is not effective way. We have better.
+chmod a+x student3 && ls -l student3
+a simply means all.
+When we run
+chmod a-x student3 && ls -l student3
+we removed execute flag from the permissions matrix.
+Previously we confirmed that we can edit and read the file. Let's change it.
+chmod u-w student3 && ls -l student3
+echo 'third line' >> student3
+No, we can't write to the file, system throws the error message -bash: student3: Permission denied
+cat student3
+but we still can read it.
+chmod 000 student3 && ls -l student3
+echo 'third line' >> student3
+cat student3
+And now we are not able to write or read the file.
+In next chapter we quickly see how to work with directories. To do so, we have to bring back the file permissions.
+chmod 644 student3 && ls -l student3
+—--------------------------
+
+6. Change permissions for directories
+Directories
+We mentioned earlier, that directory has different default permissions than files. Directories must have execute flag to allow users to go into them.
+First, let's go up one directory.
+cd .. && ls -l
+The permissions for directory are set to drwxr-xr-x, what means that owner can do everything, but group and other cannot write anything in the directory.
+As you remember (I hope), everything in Linux is a file, so we work with directory's permissions in the same way, as we did in previous chapter with files. We simply use the same chmod command.
+Let us play a little with it!
+chmod o-r student3 && ls -ld student3/
+Right, this czanges something for other users, but not us. Let's remove read flag for everyone.
+chmod a-r student3 && ls -ld
+Can we see what is in the directory?
+ls -l student3
+ls: cannot open directory 'student3': Permission denied
+No, we can't.
+What about jumping there? Shouldn't be possible, right?
+cd student3
+Well, it is possible...
+ls -l
+But we can't read anything.
+Why?
+It is simple, really. We removed read flag, so we cannot read the list of content inside the directory. But...
+cd .. && cat student3/student3
+works!
+So with read permissions you can read the content list inside the directory.
+Ok, let's bring back the default setting.
+chmod 755 student3 && ls -ld student3
+Now we will remove execute flag.
+chmod u-x student3 && ls -ld student3
+ls -l student3
+And we have this
+ls: cannot access 'student3/student3': Permission denied
+total 0
+-????????? ? ? ? ?            ? student3
+
+
+Oh, my... What had happen here?
+Without execute flag we can read the list od elements inside directory, but we lost actual work ability. To prove it, we can run
+cat student3/student3
+And we see
+cat: student3/student3: Permission denied
+cd is also impossible to be executed.
+cd student3/
+-bash: cd: student3/: Permission denied
+Understanding what is possible and what is not is very important. I found very useful matrix actions and permissions for directories done by David and I recreated it here for more handy information.
+directory permissions
+digit
+delete, rename, create files
+directory list
+read file content
+write file content
+cd to directory
+cd subdirectory
+subdirectory list
+access subdirectory files
+---
+0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--x
+1
+
+
+
+
+x
+x
+x
+x
+x
+x
+-w-
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-wx
+3
+x
+
+
+x
+x
+x
+x
+x
+x
+r--
+4
+
+
+filenames only
+
+
+
+
+
+
+
+
+
+
+
+
+r-x
+5
+
+
+x
+x
+x
+x
+x
+x
+x
+rw-
+6
+
+
+filenames only
+
+
+
+
+
+
+
+
+
+
+
+
+rwx
+7
+x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+—-------------------------------
+
+7. Owner and group
+Owner and group
+Finally, we came to the point, when we can learn about owner and group attached to the object.
+We need to switch the user now.
+exit
+su - student2
+Let's have a look what is in home directory of student2.
+ls -al
+Each object has an owner (student2) and a group (which is student1). Why is that?
+id student1
+id student2
+cat /etc/passwd | grep student
+As you can see, the default group of student2 is changed. Indeed, when this lab was prepared, I did usermod -g 1001 student2 - I've changed the default group for this user.
+Ok, let's go to student2 now.
+exit
+su - student1
+And now let's try
+cd /home/student2
+Well, we can go to another user directory.
+ls -l
+We can list it.
+ls -l student2
+cat student2/student2
+We can list subdirectory and read the file.
+echo 'test' >> student2/student2
+-bash: student2/student2: Permission denied
+But obviously we can't write to file.
+So, to conclude this section. User student2 belongs to group student1 together with student1. So, they can have additional privileges to work on the same objects. Privileges which are lower than owner, but higher than for everyone in the system.
+—-------------
+
+8. Change owner and group
+Change owner and group of the file
+Let's switch back to root.
+exit
+And now we can navigate to student1 directory.
+cd /home/student1
+ls -ld student1
+We see that student1 owns the file, and his group is attached. In order to change the group, we can use chgrp command. Syntax is simple.
+chgrp <group> <objects>
+Let's make the student2 group the 'selected one' for student1 directory.
+chgrp student2 student1
+ls -ld student1
+Yes, the group was changed.
+ls -l student1
+But not the files inside the directory. Let's modify our command now.
+chgrp -R student2 student1 && ls -l student1
+Now it works. We simply added -R as argument, what means recursive .
+Now it is time to change owner. We use chown command for it. But what is interesting, chown can also change the group. Here is the syntax:
+chown <owner>:<group> <objects>
+Let's try with some additional files.
+touch test{01..03} && ls -l test*
+chown student2 test01
+chown :student2 test02
+chown student1:student3 test03
+Observe the results
+ls -l test*
+Of course, we can use recursive mode too.
+chown -R student2:student3 student1
+ls -ld student1
+ls -al student1
+Did you noticed who is the owner of ..? Do you know why?
+Answer
+Do you remember, what '..' means? It is the parent directory, right? Please check, who owns the parent directory?
+
+
+—-----------------
+
+Congratulations
+This was a long lesson. But very important to learn! Also, this lesson concludes the Fundamentals course. There is only one part left for you - the test.
+After completion, you can start internediate course (will appear soon!), where we will cover
+more advanced file permissions
+advanced users management
+sudo limitations
+packages management
+systemd management
+spool management
+And many more!
+
